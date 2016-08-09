@@ -7,14 +7,26 @@
 
 package org.mule.functional.junit4;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.typeCompatibleWith;
 import static org.mule.functional.util.AnnotationUtils.getAnnotationAttributeFrom;
-import org.mule.functional.api.classloading.isolation.IsolatedClassLoaderExtensionsManagerConfigurationBuilder;
+import static org.mule.runtime.core.util.Preconditions.checkArgument;
+import static org.mule.runtime.core.util.Preconditions.checkState;
 import org.mule.functional.api.classloading.isolation.ClassPathClassifier;
+import org.mule.functional.api.classloading.isolation.IsolatedClassLoaderExtensionsManagerConfigurationBuilder;
+import org.mule.functional.api.classloading.isolation.IsolatedServiceProviderDiscoverer;
+import org.mule.functional.junit4.runners.ArtifactClassLoaderHolderAware;
 import org.mule.functional.junit4.runners.ArtifactClassLoaderRunner;
-import org.mule.functional.junit4.runners.PluginClassLoadersAware;
 import org.mule.functional.junit4.runners.RunnerDelegateTo;
+import org.mule.functional.junit4.runners.ArtifactClassLoaderHolderAdapter;
+import org.mule.runtime.config.spring.SpringXmlConfigurationBuilder;
 import org.mule.runtime.core.api.config.ConfigurationBuilder;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoader;
+import org.mule.runtime.module.launcher.artifact.ContainerServicesMuleContextConfigurator;
+import org.mule.runtime.module.launcher.service.DefaultServiceDiscoverer;
+import org.mule.runtime.module.launcher.service.MuleServiceManager;
+import org.mule.runtime.module.launcher.service.ReflectionServiceProviderResolutionHelper;
+import org.mule.runtime.module.launcher.service.ReflectionServiceResolver;
 
 import java.util.List;
 
@@ -45,7 +57,7 @@ import org.junit.runner.RunWith;
  * By default this test runs internally with a {@link org.junit.runners.BlockJUnit4ClassRunner} runner. On those cases where the
  * test has to be run with another runner the {@link RunnerDelegateTo} should be used to define it.
  * <p/>
- * {@link PluginClassLoadersAware} will define that this class also needs to get access to plugin {@link ArtifactClassLoader} in
+ * {@link ArtifactClassLoaderHolderAware} will define that this class also needs to get access to plugin {@link ArtifactClassLoader} in
  * order to load extension classes (they are not exposed to the application) for registering them to the
  * {@link org.mule.runtime.extension.api.ExtensionManager}.
  * <p/>
@@ -59,7 +71,7 @@ import org.junit.runner.RunWith;
 @RunWith(ArtifactClassLoaderRunner.class)
 public abstract class ArtifactFunctionalTestCase extends FunctionalTestCase {
 
-  private static List<ArtifactClassLoader> pluginClassLoaders;
+  private static ArtifactClassLoaderHolderAdapter artifactClassLoaderHolderAdapter;
 
   /**
    * @return thread context class loader has to be the application {@link ClassLoader} created by the runner.
@@ -69,18 +81,30 @@ public abstract class ArtifactFunctionalTestCase extends FunctionalTestCase {
     return Thread.currentThread().getContextClassLoader();
   }
 
-  @PluginClassLoadersAware
-  private static final void setPluginClassLoaders(List<ArtifactClassLoader> artifactClassLoaders) {
-    if (artifactClassLoaders == null) {
-      throw new IllegalArgumentException("A null value cannot be set as the plugins class loaders");
-    }
+  @ArtifactClassLoaderHolderAware
+  private static final void setArtifactClassLoaderHolderAdapter(final Object artifactClassLoaderHolder) {
+    checkArgument(artifactClassLoaderHolder != null, "artifactClassLoaderHolder cannot be null");
+    checkState(artifactClassLoaderHolderAdapter == null, "artifactClassLoaderHolderAdapter already set, it cannot be set again");
 
-    if (pluginClassLoaders != null) {
-      throw new IllegalStateException("Plugin class loaders were already set, it cannot be set again");
-    }
-    pluginClassLoaders = artifactClassLoaders;
+    artifactClassLoaderHolderAdapter = new ArtifactClassLoaderHolderAdapter(artifactClassLoaderHolder);
   }
 
+  @Override
+  protected ConfigurationBuilder getBuilder() throws Exception {
+    ConfigurationBuilder builder = super.getBuilder();
+    assertThat(builder.getClass(), typeCompatibleWith(SpringXmlConfigurationBuilder.class));
+    return builder;
+  }
+
+  @Override
+  protected void configureSpringXmlConfigurationBuilder(SpringXmlConfigurationBuilder builder) {
+    builder
+        .addServiceConfigurator(
+            new ContainerServicesMuleContextConfigurator(
+                new MuleServiceManager(new DefaultServiceDiscoverer(new IsolatedServiceProviderDiscoverer(
+                    artifactClassLoaderHolderAdapter.getServicesArtifactClassLoaders()), new ReflectionServiceResolver(
+                    new ReflectionServiceProviderResolutionHelper())))));
+  }
 
   /**
    * Adds a {@link ConfigurationBuilder} that sets the {@link org.mule.runtime.extension.api.ExtensionManager} into the
@@ -98,9 +122,10 @@ public abstract class ArtifactFunctionalTestCase extends FunctionalTestCase {
           + " for defining a delegate runner to be used.");
     }
 
-    if (pluginClassLoaders != null && !pluginClassLoaders.isEmpty()) {
-      builders.add(0, new IsolatedClassLoaderExtensionsManagerConfigurationBuilder(pluginClassLoaders));
+    if (artifactClassLoaderHolderAdapter != null
+        && !artifactClassLoaderHolderAdapter.getPluginsArtifactClassLoaders().isEmpty()) {
+      builders.add(0, new IsolatedClassLoaderExtensionsManagerConfigurationBuilder(artifactClassLoaderHolderAdapter
+          .getPluginsArtifactClassLoaders()));
     }
   }
-
 }

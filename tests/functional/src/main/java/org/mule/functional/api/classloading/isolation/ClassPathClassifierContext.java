@@ -16,6 +16,7 @@ import com.google.common.collect.Sets;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -46,6 +47,7 @@ public class ClassPathClassifierContext {
   private final Set<Class> exportClasses;
 
   protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+  private URLClassLoader classPathClassLoader;
 
   /**
    * Creates a context used for doing the classification of the class path.
@@ -90,6 +92,8 @@ public class ClassPathClassifierContext {
     this.extensionBasePackages = extensionBasePackages;
 
     this.exportClasses = exportClasses;
+
+    this.classPathClassLoader = new URLClassLoader(this.classPathURLs.toArray(new URL[0]), null);
   }
 
   /**
@@ -107,10 +111,17 @@ public class ClassPathClassifierContext {
   }
 
   /**
-   * @return a {@link List} of {@link URL}s for the classpath provided by JUnit (it is the complete list of URLs)
+   * @return a {@link List} of {@link URL}s for the classpath provided (list of URLs used for classification)
    */
   public List<URL> getClassPathURLs() {
     return classPathURLs;
+  }
+
+  /**
+   * @return a {@link URLClassLoader} for the classpath URLs set
+   */
+  public URLClassLoader getClassPathClassLoader() {
+    return classPathClassLoader;
   }
 
   /**
@@ -237,5 +248,4 @@ public class ClassPathClassifierContext {
     }
     return packages;
   }
-
 }
