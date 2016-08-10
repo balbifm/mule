@@ -981,7 +981,7 @@ public class DefaultMuleEvent implements MuleEvent, DeserializationPostInitialis
 
   @Override
   public String getCorrelationId() {
-    return getExecutionContext().getSourceCorrelationId().orElse(getId());
+    return getCorrelation().getId().orElse(getExecutionContext().getSourceCorrelationId().orElse(getId()));
   }
 
   @Override
