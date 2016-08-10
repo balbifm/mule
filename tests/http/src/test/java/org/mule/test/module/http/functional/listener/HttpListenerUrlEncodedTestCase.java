@@ -19,10 +19,8 @@ import static org.mule.runtime.module.http.api.HttpHeaders.Names.CONTENT_LENGTH;
 import static org.mule.runtime.module.http.api.HttpHeaders.Names.CONTENT_TYPE;
 import static org.mule.runtime.module.http.api.HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED;
 import static org.mule.test.module.http.functional.matcher.ParamMapMatcher.isEqual;
-
 import org.mule.runtime.core.api.MuleMessage;
 import org.mule.runtime.core.util.StringUtils;
-import org.mule.test.module.http.functional.AbstractHttpTestCase;
 import org.mule.runtime.module.http.internal.HttpParser;
 import org.mule.runtime.module.http.internal.ParameterMap;
 import org.mule.tck.junit4.rule.DynamicPort;
@@ -143,7 +141,7 @@ public class HttpListenerUrlEncodedTestCase extends AbstractHttpTestCase {
 
   @Test
   public void emptyParameterMapHttp10() throws Exception {
-    final Response response = Request.Post(getListenerUrl("map").version(HTTP_1_0).execute();
+    final Response response = Request.Post(getListenerUrl("map")).version(HTTP_1_0).execute();
     assertThat(response.returnResponse().getStatusLine().getStatusCode(), is(200));
   }
 
