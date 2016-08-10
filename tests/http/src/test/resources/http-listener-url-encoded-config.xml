@@ -23,4 +23,17 @@
         <test:queue name="out"/>
     </flow>
 
+    <flow name="testFlow2">
+        <httpn:listener config-ref="listenerConfig"  path="map">
+            <httpn:response-builder>
+                <httpn:header headerName="Content-Type" value="application/x-www-form-urlencoded"/>
+            </httpn:response-builder>
+        </httpn:listener>
+        <expression-transformer expression="#[message.inboundProperties.'http.query.params']"/>
+
+        <!-- The default handler ignores the error and returns 200, so we can't detect if it was handled correctly -->
+        <catch-exception-strategy>
+            <test:component throwException="true"/>
+        </catch-exception-strategy>
+    </flow>
 </mule>
