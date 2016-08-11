@@ -5,16 +5,17 @@
  * LICENSE.txt file.
  */
 
-package org.mule.runtime.module.launcher.service;
+package org.mule.runtime.module.service.api;
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Matchers.anyCollection;
-import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.anyCollection;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mule.runtime.api.service.Service;
@@ -23,7 +24,6 @@ import org.mule.runtime.api.service.ServiceProvider;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
@@ -75,7 +75,7 @@ public class ReflectionServiceResolverTestCase extends AbstractMuleTestCase {
     final ServiceProviderResolutionHelper providerResolutionHelper =
         mock(ServiceProviderResolutionHelper.class, RETURNS_DEEP_STUBS);
     when(providerResolutionHelper.findServiceDependencies(fooServiceProvider))
-        .thenReturn(Collections.singletonList(BarService.class));
+        .thenReturn(singletonList(BarService.class));
     final ReflectionServiceResolver dependencyResolver = new ReflectionServiceResolver(providerResolutionHelper);
 
     final List<Service> services = dependencyResolver.resolveServices(serviceProviders);
@@ -98,7 +98,7 @@ public class ReflectionServiceResolverTestCase extends AbstractMuleTestCase {
     final ServiceProviderResolutionHelper providerResolutionHelper =
         mock(ServiceProviderResolutionHelper.class, RETURNS_DEEP_STUBS);
     when(providerResolutionHelper.findServiceDependencies(fooServiceProvider))
-        .thenReturn(Collections.singletonList(BarService.class));
+        .thenReturn(singletonList(BarService.class));
     final ReflectionServiceResolver dependencyResolver = new ReflectionServiceResolver(providerResolutionHelper);
 
     dependencyResolver.resolveServices(serviceProviders);

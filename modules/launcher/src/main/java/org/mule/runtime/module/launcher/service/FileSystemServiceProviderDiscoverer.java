@@ -20,6 +20,8 @@ import org.mule.runtime.api.service.ServiceProvider;
 import org.mule.runtime.core.api.MuleRuntimeException;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoader;
 import org.mule.runtime.module.launcher.MuleFoldersUtil;
+import org.mule.runtime.module.service.api.ServiceProviderDiscoverer;
+import org.mule.runtime.module.service.api.ServiceResolutionError;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +57,11 @@ public class FileSystemServiceProviderDiscoverer implements ServiceProviderDisco
     final ServiceDescriptorFactory serviceDescriptorFactory = new ServiceDescriptorFactory();
 
     final List<ServiceDescriptor> serviceDescriptors = new LinkedList<>();
+
+    File servicesFolder = getServicesFolder();
+    if (!servicesFolder.exists()) {
+      servicesFolder.mkdir();
+    }
 
     for (String serviceFile : getServicesFolder().list(new SuffixFileFilter(".zip"))) {
       final File tempFolder = new File(getServicesTempFolder(), getBaseName(serviceFile));

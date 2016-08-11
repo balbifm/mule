@@ -5,7 +5,7 @@
  * LICENSE.txt file.
  */
 
-package org.mule.runtime.module.launcher.service;
+package org.mule.runtime.module.service.api;
 
 
 import org.mule.runtime.api.service.ServiceProvider;

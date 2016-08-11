@@ -5,7 +5,7 @@
  * LICENSE.txt file.
  */
 
-package org.mule.runtime.module.launcher.service;
+package org.mule.runtime.module.service.api;
 
 import static java.lang.String.format;
 import static org.reflections.ReflectionUtils.getAllFields;
