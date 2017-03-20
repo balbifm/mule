@@ -31,13 +31,13 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 public abstract class AbstractDependencyFileBuilder<T extends AbstractDependencyFileBuilder<T>> {
 
   public static final String COMPILE_SCOPE = "compile";
-  private final String artifactId;
+  protected final String artifactId;
   private final List<AbstractDependencyFileBuilder> dependencies = new ArrayList<>();
   private String groupId = "org.mule.test";
   private String version = "1.0.0";
   private String type = "jar";
   private String classifier;
-  private File artifactPomFile;
+  protected File artifactPomFile;
   private File tempFolder;
 
   /**
