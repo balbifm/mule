@@ -160,8 +160,8 @@ public abstract class AbstractMessageProcessorChain extends AbstractAnnotatedObj
           Object payload = result.getMessage().getPayload().getValue();
           if (payload instanceof CursorProvider) {
             Message message = Message.builder(result.getMessage()).payload(
-                                                                           streamingManager.manage((CursorProvider) payload,
-                                                                                                   result))
+                                                                           getStreamingManager().manage((CursorProvider) payload,
+                                                                                                        result))
                 .build();
             result = Event.builder(result).message(message).build();
           }
@@ -354,11 +354,30 @@ public abstract class AbstractMessageProcessorChain extends AbstractAnnotatedObj
   @Override
   public void initialise() throws InitialisationException {
     try {
-      streamingManager = muleContext.getRegistry().lookupObject(StreamingManager.class);
-    } catch (RegistrationException e) {
+      lookupStreamingManager();
+    } catch (Exception e) {
       throw new InitialisationException(e, this);
     }
     initialiseIfNeeded(getMessageProcessorsForLifecycle(), true, muleContext);
+  }
+  
+  private StreamingManager getStreamingManager() {
+    if (streamingManager == null) {
+      lookupStreamingManager();
+    }
+    
+    return streamingManager;
+  }
+    
+
+  private void lookupStreamingManager() {
+    if (muleContext != null) {
+      try {
+        streamingManager = muleContext.getRegistry().lookupObject(StreamingManager.class);
+      } catch (RegistrationException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   @Override
